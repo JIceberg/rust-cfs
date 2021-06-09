@@ -1,0 +1,10 @@
+[package]
+name = "rust-cfs"
+version = "0.1.0"
+authors = ["JIceberg <jisenberg3@gatech.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+raw_pointer = "0.1.3"
