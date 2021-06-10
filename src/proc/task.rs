@@ -1,5 +1,3 @@
-use crate::tree::node::NodePtr;
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TaskStatus {
     Idle,
@@ -13,7 +11,8 @@ pub enum TaskStatus {
 pub struct Task {
     id: u16,
     cpu_time: u64,
-    io_time_duration: u64,
+    cpu_burst_length: u64,
+    io_burst_length: u64,
     state: TaskStatus,
     runtime: u64,
     idle_time: u64,
@@ -24,13 +23,15 @@ impl Task {
     pub fn new(
         id: u16,
         cpu_time: u64,
-        io_time_duration: u64,
+        cpu_burst_length: u64,
+        io_burst_length: u64,
         start_time: u128,
     ) -> Self {
 
         Self {
             id, cpu_time,
-            io_time_duration,
+            cpu_burst_length,
+            io_burst_length,
             state: TaskStatus::New,
             runtime: 0,
             idle_time: 0,
@@ -57,6 +58,11 @@ impl Task {
     #[inline]
     pub fn get_status(&self) -> TaskStatus {
         self.state
+    }
+
+    #[inline]
+    pub fn get_runtime(&self) -> u64 {
+        self.runtime
     }
 
     #[inline]
@@ -96,10 +102,11 @@ impl Task {
     pub fn cpu_cycle(&mut self) {
         match self.state {
             TaskStatus::Running => {
+                self.runtime += 1;
                 if self.runtime >= self.cpu_time {
                     self.terminate();
-                } else {
-                    self.runtime = self.runtime + 1;
+                } else if self.runtime % self.cpu_burst_length == 0 {
+                    self.to_idle();
                 }
             },
             _ => println!("Task {:?} is not running", self.id)
@@ -109,11 +116,10 @@ impl Task {
     pub fn io_cycle(&mut self) {
         match self.state {
             TaskStatus::Idle => {
-                if self.idle_time >= self.io_time_duration {
+                self.idle_time += 1;
+                if self.idle_time >= self.io_burst_length {
                     self.idle_time = 0;
                     self.schedule();
-                } else {
-                    self.idle_time = self.idle_time + 1;
                 }
             },
             _ => println!("Task {:?} is currently not idle", self.id)

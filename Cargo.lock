@@ -7,8 +7,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01398c4541b735327e4a2e8db79afe149b458615123ddca61a49d39221411dcc"
 
 [[package]]
+name = "rbtree"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c30302bfb88dd71dce9b3577ab7f607a246ecee387717e937d49466a6d4d4760"
+
+[[package]]
 name = "rust-cfs"
 version = "0.1.0"
 dependencies = [
  "raw_pointer",
+ "rbtree",
 ]
