@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
-use raw_pointer::Pointer;
+extern crate raw_pointer as rptr;
+
+use rptr::Pointer;
 use std::cmp::Ordering;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -217,6 +219,8 @@ impl<K: Ord, V> Clone for NodePtr<K, V> {
         })
     }
 }
+
+impl<K: Ord, V> Copy for NodePtr<K, V> {}
 
 impl<K: Ord, V> Ord for NodePtr<K, V> {
     fn cmp(&self, other: &NodePtr<K, V>) -> Ordering {

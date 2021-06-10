@@ -9,7 +9,7 @@ pub enum TaskStatus {
     New,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Task {
     id: u16,
     cpu_time: u64,
@@ -18,11 +18,16 @@ pub struct Task {
     runtime: u64,
     idle_time: u64,
     start_time: u128,
-    run_node: NodePtr<u64, Box<Task>>,
 }
 
 impl Task {
-    pub fn new(id: u16, cpu_time: u64, io_time_duration: u64, start_time: u128) -> Self {
+    pub fn new(
+        id: u16,
+        cpu_time: u64,
+        io_time_duration: u64,
+        start_time: u128,
+    ) -> Self {
+
         Self {
             id, cpu_time,
             io_time_duration,
@@ -30,17 +35,8 @@ impl Task {
             runtime: 0,
             idle_time: 0,
             start_time,
-            run_node: NodePtr::null()
         }
-    }
 
-    pub fn execute<F, T>(self, f: F) -> T
-    where
-        F: FnOnce() -> T,
-        F: 'static,
-        T: 'static,
-    {
-        f()
     }
 
     #[inline]
@@ -95,10 +91,9 @@ impl Task {
         self.idle_time = 0;
         self.state = TaskStatus::New;
         self.start_time = time;
-        self.run_node = NodePtr::new(self.id as u64, unsafe { Box::from_raw(self as *mut Task) });
     }
 
-    pub fn cpu_cycle(&mut self) -> &NodePtr<u64, Box<Task>> {
+    pub fn cpu_cycle(&mut self) {
         match self.state {
             TaskStatus::Running => {
                 if self.runtime >= self.cpu_time {
@@ -109,9 +104,6 @@ impl Task {
             },
             _ => println!("Task {:?} is not running", self.id)
         }
-        
-        self.run_node = NodePtr::new(self.runtime + self.id as u64, unsafe { Box::from_raw(self as *mut Task) });
-        &self.run_node
     }
 
     pub fn io_cycle(&mut self) {
@@ -126,5 +118,11 @@ impl Task {
             },
             _ => println!("Task {:?} is currently not idle", self.id)
         }
+    }
+}
+
+impl PartialEq for Task {
+    fn eq(&self, other: &Task) -> bool {
+        self.id == other.id
     }
 }
