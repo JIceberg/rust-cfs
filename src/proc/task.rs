@@ -15,8 +15,10 @@ pub struct Task {
     io_burst_length: u64,
     state: TaskStatus,
     runtime: u64,
+    vruntime: u64,
     idle_time: u64,
     start_time: u128,
+    weight: u32,
 }
 
 impl Task {
@@ -26,6 +28,7 @@ impl Task {
         cpu_burst_length: u64,
         io_burst_length: u64,
         start_time: u128,
+        weight: u32
     ) -> Self {
 
         Self {
@@ -34,8 +37,10 @@ impl Task {
             io_burst_length,
             state: TaskStatus::New,
             runtime: 0,
+            vruntime: 0,
             idle_time: 0,
             start_time,
+            weight
         }
 
     }
@@ -68,6 +73,20 @@ impl Task {
     #[inline]
     pub fn terminate(&mut self) {
         self.state = TaskStatus::Terminated
+    }
+
+    #[inline]
+    pub fn weight(&self) -> u32 {
+        self.weight
+    }
+
+    #[inline]
+    pub fn vruntime(&mut self, now: u128) -> u64 {
+        let dt: u64 = (now - self.start_time) as u64;
+        let delta_exec_weighted: u64 = dt / (self.weight as u64);
+        self.vruntime += delta_exec_weighted;
+
+        self.vruntime
     }
 
     #[inline]

@@ -12,8 +12,8 @@ fn test_execute() {
 
     let mut tasks: Vec<Pointer<Task>> = Vec::new();
 
-    let mut my_task = Task::new(1, 5, 5, 0, 1);
-    let mut other_task = Task::new(2, 10, 5, 0, 1);
+    let mut my_task = Task::new(1, 5, 5, 0, 1, 1);
+    let mut other_task = Task::new(2, 10, 5, 0, 1, 1);
 
     tasks.push(Pointer::new(&mut my_task));
     tasks.push(Pointer::new(&mut other_task));
@@ -66,8 +66,8 @@ fn test_preempt() {
 
     let mut tasks: Vec<Pointer<Task>> = Vec::new();
 
-    let mut my_task = Task::new(1, 8, 2, 5, 1);
-    let mut other_task = Task::new(2, 10, 7, 3, 1);
+    let mut my_task = Task::new(1, 8, 2, 5, 1, 1);
+    let mut other_task = Task::new(2, 10, 7, 3, 1, 1);
 
     my_task.schedule();
     other_task.schedule();

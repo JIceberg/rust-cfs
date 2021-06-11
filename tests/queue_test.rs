@@ -7,12 +7,12 @@ use cfs::proc::queue::TaskQueue;
 
 #[test]
 fn test_popping() {
-    let task_one    = Task::new(1, 13191, 10, 5, 1);
-    let task_two    = Task::new(2, 13289, 10, 5, 1);
-    let task_three  = Task::new(3, 139, 10, 5, 2);
-    let task_four   = Task::new(4, 31921, 5, 10, 3);
-    let task_five   = Task::new(5, 3874, 7, 3, 5);
-    let task_six    = Task::new(6, 17013, 10, 6, 5);
+    let task_one    = Task::new(1, 13191, 10, 5, 1, 1);
+    let task_two    = Task::new(2, 13289, 10, 5, 1, 1);
+    let task_three  = Task::new(3, 139, 10, 5, 2, 1);
+    let task_four   = Task::new(4, 31921, 5, 10, 3, 1);
+    let task_five   = Task::new(5, 3874, 7, 3, 5, 1);
+    let task_six    = Task::new(6, 17013, 10, 6, 5, 1);
 
     let mut task_queue = TaskQueue::new();
     
@@ -43,12 +43,12 @@ fn test_popping() {
 
 #[test]
 fn test_remove() {
-    let task_one    = Task::new(1, 13191, 10, 5, 1);
-    let task_two    = Task::new(2, 13289, 10, 5, 1);
-    let task_three  = Task::new(3, 139, 10, 5, 2);
-    let task_four   = Task::new(4, 31921, 5, 10, 3);
-    let task_five   = Task::new(5, 3874, 7, 3, 5);
-    let task_six    = Task::new(6, 17013, 10, 6, 5);
+    let task_one    = Task::new(1, 13191, 10, 5, 1, 1);
+    let task_two    = Task::new(2, 13289, 10, 5, 1, 1);
+    let task_three  = Task::new(3, 139, 10, 5, 2, 1);
+    let task_four   = Task::new(4, 31921, 5, 10, 3, 1);
+    let task_five   = Task::new(5, 3874, 7, 3, 5, 1);
+    let task_six    = Task::new(6, 17013, 10, 6, 5, 1);
 
     let mut task_queue = TaskQueue::new();
     
