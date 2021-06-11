@@ -36,6 +36,14 @@ impl TaskQueue {
         self.tasks.remove(&smallest_key).unwrap()
     }
 
+    pub fn remove(&mut self, time: u128) -> Vec<Task> {
+        if self.is_empty() {
+            return Vec::new();
+        }
+
+        self.tasks.remove(&time).unwrap()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.tasks.is_empty()
     }
