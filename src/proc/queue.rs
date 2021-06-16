@@ -1,6 +1,6 @@
 // a task priority queue that holds all born tasks in system
 
-use super::task::Task;
+use super::task::{Task, TaskStatus};
 use std::collections::HashMap;
 
 pub struct TaskQueue {
@@ -13,6 +13,9 @@ impl TaskQueue {
     }
 
     pub fn add(&mut self, task: Task) {
+        if task.get_status() == TaskStatus::Idle || task.get_status() == TaskStatus::Terminated {
+            return;
+        }
         let start_time = task.get_start_time();
         if !self.tasks.contains_key(&start_time) {
             self.tasks.insert(start_time, Vec::new());
@@ -20,6 +23,12 @@ impl TaskQueue {
         self.tasks.get_mut(&start_time)
             .unwrap()
             .push(task);
+    }
+
+    pub fn append(&mut self, tasks: &[Task]) {
+        for task in tasks {
+            self.add(*task);
+        }
     }
 
     pub fn pop(&mut self) -> Vec<Task> {

@@ -82,7 +82,7 @@ impl Task {
 
     #[inline]
     pub fn vruntime(&mut self, now: u128) -> u64 {
-        let dt: u64 = (now - self.start_time) as u64;
+        let dt: u64 = now.overflowing_sub(self.start_time).0 as u64;
         let delta_exec_weighted: u64 = dt / (self.weight as u64);
         self.vruntime += delta_exec_weighted;
 
