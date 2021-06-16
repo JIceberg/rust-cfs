@@ -35,8 +35,10 @@ impl FairAlgorithm {
 
     #[inline]
     pub fn pop(&mut self) -> Task {
-        let mut task = self.tree.pop_first()
-                       .unwrap().1;
+        let mut task = self.tree
+                           .pop_first()
+                           .unwrap()
+                           .1;
         task.run();
 
         task
