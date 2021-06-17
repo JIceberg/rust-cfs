@@ -44,19 +44,45 @@ impl FairAlgorithm {
     }
 
     #[inline]
-    pub fn pop(&mut self) -> Task {
-        let mut task = self.tree
-                           .pop_first()
-                           .unwrap()
-                           .1;
+    pub fn pop(&mut self) -> Box<Task> {
+        if self.is_empty() {
+            panic!("Attempted to pop from an empty tree");
+        }
+        let mut task = Box::new(
+            self.tree
+                .pop_first()
+                .unwrap()
+                .1
+        );
         task.run();
 
         task
     }
 
+    #[inline]
+    pub fn is_empty(&mut self) -> bool {
+        self.tree.is_empty()
+    }
+
+    pub fn run(&mut self) {
+        if self.is_empty() {
+            return;
+        }
+
+        let mut task = *self.pop();
+        task.cpu_cycle();
+        self.insert(task);
+    }
+
     pub fn idle(&mut self) {
+        if self.idle.len() == 0 {
+            return;
+        }
+
         let mut curr = self.idle.pop_front().unwrap();
         curr.io_cycle();
         self.insert(curr);
     }
 }
+
+unsafe impl Sync for FairAlgorithm {}

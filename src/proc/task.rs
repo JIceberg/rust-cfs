@@ -7,14 +7,14 @@ pub enum TaskStatus {
     New,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct Task {
     id: u16,
-    cpu_time: u64,
-    cpu_burst_length: u64,
+    cpu_time: usize,
+    cpu_burst_length: usize,
     io_burst_length: u64,
     state: TaskStatus,
-    runtime: u64,
+    runtime: usize,
     vruntime: u64,
     idle_time: u64,
     start_time: u128,
@@ -24,8 +24,8 @@ pub struct Task {
 impl Task {
     pub fn new(
         id: u16,
-        cpu_time: u64,
-        cpu_burst_length: u64,
+        cpu_time: usize,
+        cpu_burst_length: usize,
         io_burst_length: u64,
         start_time: u128,
         weight: u32
@@ -45,42 +45,34 @@ impl Task {
 
     }
 
-    #[inline]
     pub fn get_id(&self) -> u16 {
         self.id
     }
 
-    #[inline]
-    pub fn get_cpu_time(&self) -> u64 {
+    pub fn get_cpu_time(&self) -> usize {
         self.cpu_time
     }
 
-    #[inline]
     pub fn get_start_time(&self) -> u128 {
         self.start_time
     }
 
-    #[inline]
     pub fn get_status(&self) -> TaskStatus {
         self.state
     }
 
-    #[inline]
-    pub fn get_runtime(&self) -> u64 {
+    pub fn get_runtime(&self) -> usize {
         self.runtime
     }
 
-    #[inline]
     pub fn terminate(&mut self) {
         self.state = TaskStatus::Terminated
     }
 
-    #[inline]
     pub fn weight(&self) -> u32 {
         self.weight
     }
 
-    #[inline]
     pub fn vruntime(&mut self, now: u128) -> u64 {
         let dt: u64 = now.overflowing_sub(self.start_time).0 as u64;
         let delta_exec_weighted: u64 = dt / (self.weight as u64);
@@ -89,7 +81,6 @@ impl Task {
         self.vruntime
     }
 
-    #[inline]
     pub fn to_idle(&mut self) {
         match self.state {
             TaskStatus::Terminated => panic!("Cannot yield a terminated task ({:?})!", self.id),
@@ -97,7 +88,6 @@ impl Task {
         }
     }
 
-    #[inline]
     pub fn schedule(&mut self) {
         match self.state {
             TaskStatus::Terminated => panic!("Cannot schedule a terminated task: ({:?})!", self.id),
@@ -105,12 +95,10 @@ impl Task {
         }
     }
 
-    #[inline]
     pub fn run(&mut self) {
         self.state = TaskStatus::Running
     }
 
-    #[inline]
     pub fn restart(&mut self, time: u128) {
         self.runtime = 0;
         self.idle_time = 0;
@@ -151,3 +139,22 @@ impl PartialEq for Task {
         self.id == other.id
     }
 }
+
+impl Clone for Task {
+    fn clone(&self) -> Self {
+        Self {
+            id:                 self.id,
+            cpu_time:           self.cpu_time,
+            cpu_burst_length:   self.cpu_burst_length,
+            io_burst_length:    self.io_burst_length,
+            state:              self.state,
+            runtime:            self.runtime,
+            vruntime:           self.vruntime,
+            idle_time:          self.idle_time,
+            start_time:         self.start_time,
+            weight:             self.weight
+        }
+    }
+}
+
+impl Copy for Task {}

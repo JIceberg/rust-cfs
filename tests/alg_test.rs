@@ -2,9 +2,12 @@
 
 extern crate rust_cfs as cfs;
 
-use cfs::proc::task::{Task, TaskStatus};
+use cfs::proc::task::Task;
 use cfs::proc::queue::TaskQueue;
 use cfs::sched::{clock::Clock, fair::FairAlgorithm};
+
+use std::thread;
+use std::sync::{Arc, Mutex};
 
 #[test]
 fn test_no_update() {
@@ -82,20 +85,86 @@ fn test_with_update() {
         sysclock.tick();
     }
 
-    let mut curr: Task = rq.pop();
+    let mut curr = rq.pop();
     assert_eq!(curr.get_id(), 1);
 
     curr.cpu_cycle();
     sysclock.tick();
-    rq.insert(curr);
+    rq.insert(*curr);
 
     curr = rq.pop();
     assert_eq!(curr.get_id(), 2);
 
     curr.cpu_cycle();
     sysclock.tick();
-    rq.insert(curr);
+    rq.insert(*curr);
 
     curr = rq.pop();
     assert_eq!(curr.get_id(), 3);
+}
+
+#[test]
+fn test_multithreaded_clock() {
+    let mut sysclock = Arc::new(Mutex::new(Clock::new()));
+
+    let mut threads = vec![];
+    let (sender, receiver) = std::sync::mpsc::channel();
+
+    let clk = Arc::clone(&mut sysclock);
+    let sending = thread::spawn(move || {
+        for _ in 0..50 {
+            let mut lock = clk.lock().unwrap();
+            sender.send(lock.time()).unwrap();
+            lock.tick();
+        }
+        drop(sender);
+    });
+    threads.push(sending);
+
+    let c_clk = Arc::clone(&mut sysclock);
+    let receiving = thread::spawn(move || {
+        let mut rq = FairAlgorithm::new(&mut c_clk.lock().unwrap());
+
+        let mut curr_time = receiver.recv().unwrap();
+        let task_one = Task::new(1, 15, 5, 3, curr_time, 1);
+        curr_time = match receiver.try_recv() {
+            Ok(tick) => tick,
+            Err(_) => curr_time
+        };
+        let task_two = Task::new(2, 15, 3, 5, curr_time, 1);
+
+        let mut task_queue = TaskQueue::new();
+        task_queue.append(&[
+            task_one,
+            task_two
+        ]);
+
+        while !task_queue.is_empty() {
+            let tasks = task_queue.pop();
+            rq.push(tasks);
+        }
+
+        loop {
+            let time = match receiver.recv() {
+                Ok(tick) => tick,
+                Err(_) => break
+            };
+
+            if !rq.is_empty() {
+                let mut curr = rq.pop();
+                println!("Running task {:?} at time {}", curr.get_id(), time);
+                curr.cpu_cycle();
+                rq.insert(*curr);
+            }
+            rq.idle();
+        }
+        drop(receiver);
+    });
+    threads.push(receiving);
+
+    for thread in threads {
+        thread.join().unwrap();
+    }
+
+    assert_eq!(sysclock.lock().unwrap().time(), 50);
 }
