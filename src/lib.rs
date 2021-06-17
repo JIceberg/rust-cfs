@@ -3,4 +3,4 @@ pub mod sched;
 
 // TODO:
 //
-// 1. Maximize efficiency of threading for the system ticks
+// 1. Create a nice user interface for cargo run
