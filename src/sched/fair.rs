@@ -60,8 +60,13 @@ impl FairAlgorithm {
     }
 
     #[inline]
-    pub fn is_empty(&mut self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.tree.is_empty()
+    }
+
+    #[inline]
+    pub fn is_finished(&self) -> bool {
+        self.is_empty() && self.idle.len() == 0
     }
 
     pub fn run(&mut self) {

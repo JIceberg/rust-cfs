@@ -7,6 +7,50 @@ pub enum TaskStatus {
     New,
 }
 
+#[derive(Clone, Copy)]
+pub struct TaskChar {
+    id: u16,
+    cpu_time: u64,
+    cpu_burst_length: u64,
+    io_burst_length: u64,
+    weight: u32,
+}
+
+impl TaskChar {
+    pub fn new(
+        id: u16,
+        cpu_time: u64,
+        cpu_burst_length: u64,
+        io_burst_length: u64,
+        weight: u32
+    ) -> Self {
+
+        Self {
+            id,
+            cpu_time,
+            cpu_burst_length,
+            io_burst_length,
+            weight
+        }
+
+    }
+
+    #[inline]
+    pub fn get_id(&self) -> u16 { self.id }
+
+    #[inline]
+    pub fn get_cpu_time(&self) -> u64 { self.cpu_time }
+
+    #[inline]
+    pub fn get_cpu_burst_length(&self) -> u64 { self.cpu_burst_length }
+
+    #[inline]
+    pub fn get_io_burst_length(&self) -> u64 { self.io_burst_length }
+
+    #[inline]
+    pub fn get_weight(&self) -> u32 { self.weight }
+}
+
 #[derive(Debug)]
 pub struct Task {
     id: u16,
