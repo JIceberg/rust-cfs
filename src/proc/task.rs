@@ -10,11 +10,11 @@ pub enum TaskStatus {
 #[derive(Debug)]
 pub struct Task {
     id: u16,
-    cpu_time: usize,
-    cpu_burst_length: usize,
+    cpu_time: u64,
+    cpu_burst_length: u64,
     io_burst_length: u64,
     state: TaskStatus,
-    runtime: usize,
+    runtime: u64,
     vruntime: u64,
     idle_time: u64,
     start_time: u128,
@@ -24,8 +24,8 @@ pub struct Task {
 impl Task {
     pub fn new(
         id: u16,
-        cpu_time: usize,
-        cpu_burst_length: usize,
+        cpu_time: u64,
+        cpu_burst_length: u64,
         io_burst_length: u64,
         start_time: u128,
         weight: u32
@@ -49,7 +49,7 @@ impl Task {
         self.id
     }
 
-    pub fn get_cpu_time(&self) -> usize {
+    pub fn get_cpu_time(&self) -> u64 {
         self.cpu_time
     }
 
@@ -61,7 +61,7 @@ impl Task {
         self.state
     }
 
-    pub fn get_runtime(&self) -> usize {
+    pub fn get_runtime(&self) -> u64 {
         self.runtime
     }
 
