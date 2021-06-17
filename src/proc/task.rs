@@ -158,3 +158,6 @@ impl Clone for Task {
 }
 
 impl Copy for Task {}
+
+unsafe impl Send for Task {}
+unsafe impl Sync for Task {}

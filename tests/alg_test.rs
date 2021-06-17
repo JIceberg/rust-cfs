@@ -145,14 +145,13 @@ fn test_multithreaded_clock() {
         }
 
         loop {
-            let time = match receiver.recv() {
+            let _time = match receiver.recv() {
                 Ok(tick) => tick,
                 Err(_) => break
             };
 
             if !rq.is_empty() {
                 let mut curr = rq.pop();
-                println!("Running task {:?} at time {}", curr.get_id(), time);
                 curr.cpu_cycle();
                 rq.insert(*curr);
             }
@@ -167,4 +166,89 @@ fn test_multithreaded_clock() {
     }
 
     assert_eq!(sysclock.lock().unwrap().time(), 50);
+}
+
+#[test]
+fn test_efficient_threads() {
+    let mut sysclock = Arc::new(Mutex::new(Clock::new()));
+
+    let mut threads = vec![];
+    let (clock_sender_1, spawner_clock_recv) = std::sync::mpsc::channel();
+    let (clock_sender_2, clock_recv) = std::sync::mpsc::channel();
+    let (born_sender, born_recv) = std::sync::mpsc::channel();
+
+    let clk = Arc::clone(&mut sysclock);
+    let ticking = thread::spawn(move || {
+        for _ in 0..100 {
+            let mut lock = clk.lock().unwrap();
+            match clock_sender_1.send(lock.time()) {
+                Ok(_) => {},
+                _ => {}
+            };
+            clock_sender_2.send(lock.time()).unwrap();
+            lock.tick();
+        }
+        drop(clock_sender_1);
+        drop(clock_sender_2);
+    });
+    threads.push(ticking);
+
+    let c_clk = Arc::clone(&mut sysclock);
+
+    let task_spawning = thread::spawn(move || {
+        let mut time = match spawner_clock_recv.recv() {
+            Ok(tick) => tick,
+            Err(_) => panic!("Ran out of time before the processes could be born, check bounds")
+        };
+        let task_one = Task::new(1, 15, 5, 3, time, 1);
+        match born_sender.send(task_one) {
+            Ok(_) => {},
+            _ => {}
+        };
+        time = match spawner_clock_recv.try_recv() {
+            Ok(tick) => tick,
+            Err(_) => time
+        };
+        let task_two = Task::new(2, 15, 3, 5, time, 1);
+        match born_sender.send(task_two) {
+            Ok(_) => {},
+            _ => {}
+        };
+    });
+    threads.push(task_spawning);
+
+    let receiving = thread::spawn(move || {
+        let mut task_queue = TaskQueue::new();
+        let mut rq = FairAlgorithm::new(&mut c_clk.lock().unwrap());
+        
+        loop {
+            let _time = match clock_recv.recv() {
+                Ok(tick) => tick,
+                Err(_) => break
+            };
+
+            match born_recv.try_recv() {
+                Ok(task) => task_queue.add(task),
+                _ => {}
+            };
+
+            let born_tasks = task_queue.pop();
+            rq.push(born_tasks);
+
+            if !rq.is_empty() {
+                let mut curr = rq.pop();
+                curr.cpu_cycle();
+                rq.insert(*curr);
+            }
+            rq.idle();
+        }
+        drop(clock_recv);
+    });
+    threads.push(receiving);
+
+    for thread in threads {
+        thread.join().unwrap();
+    }
+
+    assert_eq!(sysclock.lock().unwrap().time(), 100);
 }
